@@ -1,0 +1,28 @@
+-- What's the most expensive listing? What else can you tell me about the listing?
+
+
+select name, price from sfo_listings order by price desc limit 1
+
+-- or
+
+select name, price from sfo_listings
+where price in ( select max(price) mp from sfo_listings)
+
+-- What neighborhoods seem to be the most popular?
+
+
+select neighbourhood, count (*) from sfo_listings group by neighbourhood order by count desc limit 5
+
+-- What time of year is the cheapest time to go to San Francisco?
+
+SELECT  avg(regexp_replace(price::text, '[$,]', '', 'g')::numeric) average_price, EXTRACT(MONTH FROM calender_date) best_month from sfo_calendar
+where price is not null
+group by best_month order by average_price
+
+
+-- What about the busiest?
+
+with result as (SELECT EXTRACT(MONTH FROM calender_date) best_month, (CASE WHEN available  = 'f' THEN 1 END) full_count FROM sfo_calendar)
+select result.best_month, count(result.full_count) how_many from result
+group by result.best_month
+ORDER BY  how_many desc
